@@ -1,0 +1,6 @@
+#!/usr/bin/env sh
+set -ex
+
+./scripts/build
+docker build -t  cfbuildpacks/new_version_resource .
+docker push cfbuildpacks/new_version_resource
