@@ -1,0 +1,27 @@
+hash: f9edb05b124022beb74cdecd54165aa24a21922e2b4f7529422ea5ce58320c27
+updated: 2016-07-29T12:11:33.943951859-04:00
+imports:
+- name: get
+  version: ""
+- name: github.com/andybalholm/cascadia
+  version: 3ad29d1ad1c4f2023e355603324348cf1f4b2d48
+- name: github.com/hashicorp/go-version
+  version: deeb027c13a95d56c7585df3fe29207208c6706e
+- name: github.com/jarcoal/httpmock
+  version: 145b10d659265440f062c31ea15326166bae56ee
+- name: github.com/onsi/ginkgo
+  version: 74c678d97c305753605c338c6c78c49ec104b5e7
+  subpackages:
+  - ginkgo
+- name: github.com/onsi/gomega
+  version: 9ed8da19f2156b87a803a8fdf6d126f627a12db1
+- name: github.com/PuerkitoBio/goquery
+  version: 7f4291566cf7cac3be222a933e01a2bed97532b1
+- name: golang.org/x/net
+  version: 6a513affb38dc9788b449d59ffed099b8de18fa0
+  subpackages:
+  - html
+  - html/atom
+- name: gopkg.in/yaml.v2
+  version: e4d366fc3c7938e2958e662b4258c7a89e1f0e3e
+devImports: []
