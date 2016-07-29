@@ -3,7 +3,7 @@ package new_version_resource
 type Source struct {
 	URL       string `json:"url"`
 	CSSPath   string `json:"csspath"`
-	UseSemver bool   `json:use_semver`
+	UseSemver bool   `json:"use_semver"`
 }
 
 type CheckRequest struct {
