@@ -2,9 +2,12 @@ package new_version_resource
 
 import (
 	"net/http"
+	"regexp"
+	"sort"
 	"strings"
 
 	"github.com/PuerkitoBio/goquery"
+	version "github.com/hashicorp/go-version"
 )
 
 type CheckCommand struct {
@@ -35,8 +38,36 @@ func (c *CheckCommand) getVersions(source Source) ([]Version, error) {
 	return versions, nil
 }
 
+func getSemverVersions(resourceVersions []Version) []*version.Version {
+	versions := make([]*version.Version, len(resourceVersions))
+	re := regexp.MustCompile(`[\d\.]+.*`)
+	for idx, resource_version := range resourceVersions {
+		cleaned_resource_version := re.FindAllString(resource_version.Version, -1)[0]
+		v, _ := version.NewVersion(cleaned_resource_version)
+		versions[idx] = v
+	}
+	return versions
+}
+
+func versionFromSemverVersions(semverVersions []*version.Version) []Version {
+	versions := make([]Version, len(semverVersions))
+	for idx, semverVersion := range semverVersions {
+		versions[idx] = Version{Version: semverVersion.String()}
+	}
+	return versions
+}
+
 func (c *CheckCommand) Run(request CheckRequest) ([]Version, error) {
 	versions, err := c.getVersions(request.Source)
+	if request.Source.UseSemver {
+		//get version semvers
+		semverVersions := getSemverVersions(versions)
+		//sort them
+		sort.Sort(sort.Reverse(version.Collection(semverVersions)))
+		//cast back to regular version types
+		versions = versionFromSemverVersions(semverVersions)
+	}
+
 	if err != nil {
 		return nil, err
 	}
