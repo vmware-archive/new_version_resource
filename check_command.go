@@ -40,7 +40,7 @@ func (c *CheckCommand) getVersions(source Source) ([]Version, error) {
 
 func getSemverVersions(resourceVersions []Version) []*version.Version {
 	versions := make([]*version.Version, len(resourceVersions))
-	re := regexp.MustCompile(`[\d\.]+.*`)
+	re := regexp.MustCompile(`[\d\.]+[0-9A-Za-z\-]*`)
 	for idx, resource_version := range resourceVersions {
 		cleaned_resource_version := re.FindAllString(resource_version.Version, -1)[0]
 		v, _ := version.NewVersion(cleaned_resource_version)
