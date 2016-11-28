@@ -22,19 +22,32 @@ func main() {
 
 	destDir := os.Args[1]
 	os.MkdirAll(destDir, 0755)
-	err := ioutil.WriteFile(filepath.Join(destDir, "url"), []byte(request.Source.URL), 0644)
+
+	urlFile := filepath.Join(destDir, "url")
+	var url string
+
+	if request.Source.Type == "http" {
+		url = request.Source.HTTP.URL
+	} else if request.Source.Type == "git" {
+		url = request.Source.Git.Organization + "/" + request.Source.Git.Repo
+	}
+
+	err := ioutil.WriteFile(urlFile, []byte(url), 0644)
 	if err != nil {
 		fmt.Println(err)
 	}
+
 	err = ioutil.WriteFile(filepath.Join(destDir, "version"), []byte(request.Version.Version), 0644)
 	if err != nil {
 		fmt.Println(err)
 	}
+
 	fp, err := os.Create(filepath.Join(destDir, "input.json"))
 	if err != nil {
 		log.Fatalf("Unable to create %v. Err: %v.", "input.json", err)
 	}
 	defer fp.Close()
+
 	encoder := json.NewEncoder(fp)
 	if err = encoder.Encode(request); err != nil {
 		log.Fatalf("Unable to encode Json file. Err: %v.", err)
@@ -43,7 +56,7 @@ func main() {
 	response := resource.InResponse{
 		Version: request.Version,
 		Metadata: []resource.MetadataPair{
-			{Name: "url", Value: request.Source.URL},
+			{Name: "url", Value: url},
 			{Name: "version", Value: request.Version.Version},
 		},
 	}

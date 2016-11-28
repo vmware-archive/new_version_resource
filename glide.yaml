@@ -4,8 +4,10 @@ import:
 - package: github.com/onsi/ginkgo
   subpackages:
   - ginkgo
-- package: get
 - package: github.com/onsi/gomega
 - package: github.com/jarcoal/httpmock
 - package: gopkg.in/yaml.v2
 - package: github.com/hashicorp/go-version
+- package: github.com/google/go-github
+  subpackages:
+  - github
