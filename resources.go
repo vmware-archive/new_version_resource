@@ -1,11 +1,22 @@
 package new_version_resource
 
 type Source struct {
-	URL       string `json:"url"`
-	CSSPath   string `json:"csspath"`
-	UseSemver bool   `json:"use_semver"`
+	Type  string     `json:"type"`
+	Regex string     `json:"regex"`
+	Git   GitSource  `json:"git",omitempty`
+	HTTP  HTTPSource `json:"http",omitempty`
 }
 
+type HTTPSource struct {
+	URL     string `json:"url"`
+	CSSPath string `json:"csspath"`
+}
+
+type GitSource struct {
+	Organization string `json:"organization"`
+	Repo         string `json:"repo"`
+	AccessToken  string `json:"access_token",omitempty`
+}
 type CheckRequest struct {
 	Source  Source  `json:"source"`
 	Version Version `json:"version"`
