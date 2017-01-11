@@ -8,7 +8,7 @@ import (
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/google/go-github/github"
-	version "github.com/hashicorp/go-version"
+	 semver "github.com/hashicorp/go-version"
 )
 
 type CheckCommand struct {
@@ -31,8 +31,8 @@ func (v *VersionSorter) Swap(i, j int) {
 }
 
 func (v *VersionSorter) Less(i, j int) bool {
-	semI, _ := version.NewVersion(v.versions[i].Version)
-	semJ, _ := version.NewVersion(v.versions[j].Version)
+	semI, _ := semver.NewVersion(v.versions[i].Version)
+	semJ, _ := semver.NewVersion(v.versions[j].Version)
 
 	return semI.LessThan(semJ)
 }
@@ -64,19 +64,29 @@ func (c *CheckCommand) getVersionsFromGithub(source GitSource, regex string) ([]
 	client := github.NewClient(nil)
 
 	re := regexp.MustCompile(regex)
-
-	tags, _, err := client.Repositories.ListTags(source.Organization, source.Repo, nil)
-
-	if err != nil {
-		return nil, err
-	}
-
+	
 	versions := make([]Version, 0)
 
-	for _, tag := range tags {
-		versions = append(versions, Version{
-			Version: re.FindAllString(*tag.Name, -1)[0],
-		})
+	options := &github.ListOptions{}
+
+	for {
+		tags, response, err := client.Repositories.ListTags(source.Organization, source.Repo, options)
+	
+		if err != nil {
+			return nil, err
+		}
+	
+		for _, tag := range tags {
+			versions = append(versions, Version{
+				Version: re.FindAllString(*tag.Name, -1)[0],
+			})
+		}
+
+		if response.NextPage == 0 {
+			break
+		}
+
+		options.Page = response.NextPage
 	}
 
 	return versions, nil
@@ -90,8 +100,6 @@ func (c *CheckCommand) Run(request CheckRequest) ([]Version, error) {
 		versions, err = c.getVersionsFromHttp(request.Source.HTTP, request.Source.Regex)
 	} else if request.Source.Type == "git" {
 		versions, err = c.getVersionsFromGithub(request.Source.Git, request.Source.Regex)
-	} else {
-
 	}
 
 	if err != nil {

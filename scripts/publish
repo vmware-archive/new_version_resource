@@ -2,5 +2,5 @@
 set -ex
 
 ./scripts/build
-docker build -t  cfbuildpacks/new_version_resource .
-docker push cfbuildpacks/new_version_resource
+docker build -t  cfbuildpacks/new_version_resource_with_git .
+docker push cfbuildpacks/new_version_resource_with_git
