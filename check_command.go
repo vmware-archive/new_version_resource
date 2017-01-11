@@ -67,26 +67,22 @@ func (c *CheckCommand) getVersionsFromGithub(source GitSource, regex string) ([]
 	
 	versions := make([]Version, 0)
 
-	options := &github.ListOptions{}
+	options := &github.ListOptions{PerPage: 100}
 
-	for {
-		tags, response, err := client.Repositories.ListTags(source.Organization, source.Repo, options)
+	tags, _, err := client.Repositories.ListTags(source.Organization, source.Repo, options)
 	
-		if err != nil {
-			return nil, err
-		}
-	
-		for _, tag := range tags {
+	if err != nil {
+		return nil, err
+	}
+
+	for _, tag := range tags {
+		matches := re.FindAllString(*tag.Name, -1)
+
+		if matches != nil {
 			versions = append(versions, Version{
-				Version: re.FindAllString(*tag.Name, -1)[0],
+				Version: matches[0],
 			})
 		}
-
-		if response.NextPage == 0 {
-			break
-		}
-
-		options.Page = response.NextPage
 	}
 
 	return versions, nil

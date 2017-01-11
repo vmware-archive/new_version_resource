@@ -227,7 +227,7 @@ var _ = Describe("Check Command", func() {
 
 		BeforeEach(func() {
 			command = resource.NewCheckCommand()
-			regex = `v[\d\.]+[0-9A-Za-z\-]*`
+			regex = `v([\d\.]+[0-9A-Za-z\-]*)`
 
 			gitSource = resource.GitSource{
 				Organization: "bundler",
