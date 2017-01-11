@@ -245,7 +245,7 @@ var _ = Describe("Check Command", func() {
 			request = resource.CheckRequest{
 				Source: source,
 				Version: resource.Version{
-					Version: "v1.13.6",
+					Version: "v1.13.7",
 				},
 			}
 
@@ -266,6 +266,7 @@ var _ = Describe("Check Command", func() {
 			Ω(err).ShouldNot(HaveOccurred())
 
 			Ω(response).Should(Equal([]resource.Version{
+				{Version: "v1.13.7"},
 				{Version: "v1.13.6"},
 				{Version: "v1.13.5"},
 				{Version: "v1.13.4"},
@@ -284,7 +285,7 @@ var _ = Describe("Check Command", func() {
 			Ω(err).ShouldNot(HaveOccurred())
 
 			Ω(response).Should(Equal([]resource.Version{
-				{Version: "v1.13.6"},
+				{Version: "v1.13.7"},
 			}))
 		})
 	})
