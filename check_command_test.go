@@ -255,7 +255,7 @@ var _ = Describe("Check Command", func() {
 		})
 
 		It("returns all of the versions that are newer", func() {
-		request = resource.CheckRequest{
+			request = resource.CheckRequest{
 				Source: source,
 				Version: resource.Version{
 					Version: "v1.13.4",
