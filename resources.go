@@ -15,6 +15,7 @@ type HTTPSource struct {
 type GitSource struct {
 	Organization string `json:"organization"`
 	Repo         string `json:"repo"`
+	AccessToken  string `json:"access_token",omitempty`
 }
 type CheckRequest struct {
 	Source  Source  `json:"source"`

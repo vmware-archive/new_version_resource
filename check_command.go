@@ -8,7 +8,8 @@ import (
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/google/go-github/github"
-	 semver "github.com/hashicorp/go-version"
+	semver "github.com/hashicorp/go-version"
+	"golang.org/x/oauth2"
 )
 
 type CheckCommand struct {
@@ -18,26 +19,28 @@ func NewCheckCommand() *CheckCommand {
 	return &CheckCommand{}
 }
 
+type SortVersion struct {
+	Version string
+	Semver  *semver.Version
+}
+
 type VersionSorter struct {
-	versions []Version
+	sortVersions []SortVersion
 }
 
 func (v *VersionSorter) Len() int {
-	return len(v.versions)
+	return len(v.sortVersions)
 }
 
 func (v *VersionSorter) Swap(i, j int) {
-	v.versions[i], v.versions[j] = v.versions[j], v.versions[i]
+	v.sortVersions[i], v.sortVersions[j] = v.sortVersions[j], v.sortVersions[i]
 }
 
 func (v *VersionSorter) Less(i, j int) bool {
-	semI, _ := semver.NewVersion(v.versions[i].Version)
-	semJ, _ := semver.NewVersion(v.versions[j].Version)
-
-	return semI.LessThan(semJ)
+	return v.sortVersions[i].Semver.LessThan(v.sortVersions[j].Semver)
 }
 
-func (c *CheckCommand) getVersionsFromHttp(source HTTPSource, regex string) ([]Version, error) {
+func (c *CheckCommand) getVersionsFromHttp(source HTTPSource, regex string) ([]SortVersion, error) {
 	res, err := http.Get(source.URL)
 	if err != nil {
 		return nil, err
@@ -50,27 +53,50 @@ func (c *CheckCommand) getVersionsFromHttp(source HTTPSource, regex string) ([]V
 	}
 
 	re := regexp.MustCompile(regex)
-	versions := make([]Version, 0)
+	versions := make([]SortVersion, 0)
 
 	doc.Find(source.CSSPath).Each(func(i int, s *goquery.Selection) {
-		versions = append(versions, Version{
-			Version: re.FindAllString(strings.TrimSpace(s.Text()), -1)[0],
-		})
+		matches := re.FindAllString(strings.TrimSpace(s.Text()), -1)
+
+		if matches != nil {
+			v, err := semver.NewVersion(matches[0])
+
+			if err != nil {
+				return
+			}
+
+			versions = append(versions, SortVersion{
+				Version: matches[0],
+				Semver:  v,
+			})
+		}
 	})
 	return versions, nil
 }
 
-func (c *CheckCommand) getVersionsFromGithub(source GitSource, regex string) ([]Version, error) {
-	client := github.NewClient(nil)
+func (c *CheckCommand) getVersionsFromGithub(source GitSource, regex string) ([]SortVersion, error) {
+	var client *github.Client
+
+	if source.AccessToken == "" {
+		client = github.NewClient(nil)
+	} else {
+		tokenSource := oauth2.StaticTokenSource(
+			&oauth2.Token{AccessToken: source.AccessToken},
+		)
+
+		tokenClient := oauth2.NewClient(oauth2.NoContext, tokenSource)
+
+		client = github.NewClient(tokenClient)
+	}
 
 	re := regexp.MustCompile(regex)
-	
-	versions := make([]Version, 0)
+
+	versions := make([]SortVersion, 0)
 
 	options := &github.ListOptions{PerPage: 100}
 
 	tags, _, err := client.Repositories.ListTags(source.Organization, source.Repo, options)
-	
+
 	if err != nil {
 		return nil, err
 	}
@@ -79,8 +105,15 @@ func (c *CheckCommand) getVersionsFromGithub(source GitSource, regex string) ([]
 		matches := re.FindAllString(*tag.Name, -1)
 
 		if matches != nil {
-			versions = append(versions, Version{
+			v, err := semver.NewVersion(matches[0])
+
+			if err != nil {
+				continue
+			}
+
+			versions = append(versions, SortVersion{
 				Version: matches[0],
+				Semver:  v,
 			})
 		}
 	}
@@ -89,13 +122,13 @@ func (c *CheckCommand) getVersionsFromGithub(source GitSource, regex string) ([]
 }
 
 func (c *CheckCommand) Run(request CheckRequest) ([]Version, error) {
-	var versions []Version
+	var sortVersions []SortVersion
 	var err error
 
 	if request.Source.Type == "http" {
-		versions, err = c.getVersionsFromHttp(request.Source.HTTP, request.Source.Regex)
+		sortVersions, err = c.getVersionsFromHttp(request.Source.HTTP, request.Source.Regex)
 	} else if request.Source.Type == "git" {
-		versions, err = c.getVersionsFromGithub(request.Source.Git, request.Source.Regex)
+		sortVersions, err = c.getVersionsFromGithub(request.Source.Git, request.Source.Regex)
 	}
 
 	if err != nil {
@@ -103,27 +136,33 @@ func (c *CheckCommand) Run(request CheckRequest) ([]Version, error) {
 	}
 
 	sorter := new(VersionSorter)
-	sorter.versions = versions
+	sorter.sortVersions = sortVersions
 
 	sort.Sort(sort.Reverse(sorter))
 
-	if len(versions) == 0 {
-		return versions, nil
+	outputVersions := make([]Version, len(sortVersions))
+
+	for i, _ := range sortVersions {
+		outputVersions[i] = Version{Version: sortVersions[i].Version}
+	}
+
+	if len(outputVersions) == 0 {
+		return outputVersions, nil
 	}
 
 	if request.Version.Version == "" {
-		return versions[:1], nil
+		return outputVersions[:1], nil
 	}
 
-	if request.Version.Version == versions[0].Version {
+	if request.Version.Version == outputVersions[0].Version {
 		return nil, nil
 	}
 
-	for i, version := range versions {
+	for i, version := range outputVersions {
 		if request.Version.Version == version.Version {
-			return versions[:i+1], nil
+			return outputVersions[:i+1], nil
 		}
 	}
 
-	return versions[:1], nil
+	return outputVersions[:1], nil
 }
