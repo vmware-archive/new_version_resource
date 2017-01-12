@@ -29,7 +29,7 @@ func main() {
 	if request.Source.Type == "http" {
 		url = request.Source.HTTP.URL
 	} else if request.Source.Type == "git" {
-		url = request.Source.Git.Organization + "/" + request.Source.Git.Repo
+		url = "https://github.com/" + request.Source.Git.Organization + "/" + request.Source.Git.Repo
 	}
 
 	err := ioutil.WriteFile(urlFile, []byte(url), 0644)
