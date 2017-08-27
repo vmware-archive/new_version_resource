@@ -17,7 +17,13 @@ func main() {
 		in.Main()
 	case "out":
 		out.Main()
+	case "cli":
+		for _, name := range []string{"check", "in", "out"} {
+			if err := os.Symlink("cli", name); err != nil {
+				panic(err)
+			}
+		}
 	default:
-		panic("Unkown command: acceptable check/in/out")
+		panic("Unkown command: acceptable check/in/out/cli")
 	}
 }
