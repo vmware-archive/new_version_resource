@@ -1,4 +1,4 @@
-package main
+package in
 
 import (
 	"encoding/json"
@@ -11,7 +11,7 @@ import (
 	resource "github.com/pivotal-cf-experimental/new_version_resource"
 )
 
-func main() {
+func Main() {
 	if len(os.Args) < 2 {
 		fmt.Printf("usage: %s <sources directory>\n", os.Args[0])
 		os.Exit(1)

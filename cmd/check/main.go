@@ -1,4 +1,4 @@
-package main
+package check
 
 import (
 	"encoding/json"
@@ -8,7 +8,7 @@ import (
 	resource "github.com/pivotal-cf-experimental/new_version_resource"
 )
 
-func main() {
+func Main() {
 	var request resource.CheckRequest
 	inputRequest(&request)
 
