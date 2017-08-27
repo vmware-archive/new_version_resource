@@ -3,11 +3,6 @@ Version tracking based on JQuery CSS Paths
 
 For when you are trying to track versioned releases on websites.
 
-## Building Binaries
-```bash
-./scripts/build
-```
-
 ## Building docker image
 ```bash
 sudo docker build -t your-dockerhub-username/new_version_resource .
@@ -17,7 +12,8 @@ sudo docker push your-dockerhub-username/new_version_resource
 For deploying as the Buildpacks team:
 
 ```bash
-./scripts/publish
+docker build -t  cfbuildpacks/new_version_resource .
+docker push cfbuildpacks/new_version_resource
 ```
 
 ## Usage
